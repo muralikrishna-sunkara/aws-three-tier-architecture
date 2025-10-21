@@ -1,9 +1,10 @@
-```markdown
 # AWS Three-Tier Architecture (Terraform + Shell)
 
-A compact, opinionated reference implementation of a three‑tier architecture on AWS using Terraform (HCL) and small supporting shell scripts. This repo sets up a VPC with public and private subnets, an application tier (EC2 or ASG behind a load balancer), and a data tier (RDS). Use this as a starting template for learning, demos, or as the basis for production hardening.
+<!-- Image: use a relative path so GitHub shows it correctly when the file and image are in the same repo.
+     If you prefer to host the image elsewhere, replace the path below with the raw URL. -->
+[![Three-tier architecture diagram](./images/three-tier-app.png)](https://raw.githubusercontent.com/muralikrishna-sunkara/aws-three-tier-architecture/edab2323c7a56bc8f30d0818e94481a8a1bf3019/images/three-tier-app.png)
 
-![three-tier-app](https://github.com/user-attachments/assets/41b901b3-0f22-4f43-b7a6-a5d4b9b44127)
+If the image above does not render, click the link to view the raw image. To make the image visible in this README, add the diagram file to the repository at `images/three-tier-app.png` (or update the path to wherever the file is stored).
 
 ---
 
@@ -20,45 +21,49 @@ Table of contents
 - [Cost & security notes](#cost--security-notes)
 - [Contributing](#contributing)
 - [License & contact](#license--contact)
+- [Acknowledgements](#acknowledgements)
 
-Overview
-This repository codifies the classic three‑tier pattern:
+## Overview
+This repository is a compact, opinionated reference implementation of a three-tier architecture on AWS using Terraform (HCL) with small supporting shell scripts. It provisions a VPC with public and private subnets and implements the classic presentation → application → data layers.
+
+Core layers:
 - Presentation: Internet-facing Load Balancer in public subnets
 - Application: EC2 instances or Auto Scaling Group in private subnets
-- Data: RDS instance(s) in isolated private DB subnets
+- Data: RDS instance(s) in private DB subnets
 
-Optionally include a bastion/jump host in public subnets for SSH into private instances.
+Optionally include a bastion/jump host in public subnets for SSH access to private instances.
 
-Architecture (logical)
-Internet
-  ↓
-[ALB / ELB]  — public subnets
-  ↓
-[App servers (EC2/ASG)] — private subnets
-  ↓
+## Architecture (logical)
+Internet  
+  ↓  
+[ALB / ELB] — public subnets  
+  ↓  
+[App servers (EC2/ASG)] — private subnets  
+  ↓  
 [RDS / DB] — private DB subnets
 
 Security groups are scoped so only the ALB can reach app servers and only app servers can reach RDS.
 
-Prerequisites
+## Prerequisites
 - AWS account with permissions to create VPC, EC2, ELB/ALB, RDS, IAM, S3 (if using remote state), etc.
 - Terraform v1.x (check provider blocks for specific versions)
-- AWS CLI (optional, for convenience)
+- AWS CLI (optional)
 - An SSH key pair in the target AWS region (for EC2 access)
 - Optional: jq, curl (used by helper scripts)
-- Optional: S3 + DynamoDB for remote state and lock
+- Optional: S3 + DynamoDB for remote state and locking
 
-Repository layout
-- main.tf, variables.tf, outputs.tf — top-level Terraform that wires modules together
+## Repository layout
+- main.tf, variables.tf, outputs.tf — top-level Terraform that wires modules together  
 - modules/
   - network/ — VPC, subnets, routing, NAT, IGW
   - app/ — EC2 / ASG, launch templates, user-data
   - db/ — RDS instance(s) and subnet group
 - scripts/ — helper shell scripts (bootstrap, tests, etc.)
 - examples/ — environment examples or opinionated deploy folders
+- images/ — repository images (put diagrams here so README can reference them)
 - README.md — this file
 
-Quick start (local test)
+## Quick start (local test)
 1. Clone:
    git clone https://github.com/muralikrishna-sunkara/aws-three-tier-architecture.git
    cd aws-three-tier-architecture
@@ -68,13 +73,13 @@ Quick start (local test)
    export AWS_SECRET_ACCESS_KEY=...
    export AWS_DEFAULT_REGION=us-east-1
 
-   Or use aws configure and an AWS profile. If you use profiles with Terraform, set TF_VAR_aws_profile or provider config accordingly.
+   Or use `aws configure` and an AWS profile. If you use profiles with Terraform, set TF_VAR_aws_profile or configure the provider accordingly.
 
 3. Set variables:
-   - Create terraform.tfvars (gitignored) or pass -var/-var-file on the CLI.
+   - Create `terraform.tfvars` (gitignored) or pass `-var`/`-var-file` on the CLI.
    - Typical values: region, vpc_cidr, public_subnets, private_subnets, db_username, db_password, instance_type, key_pair_name.
 
-   Example terraform.tfvars (do NOT commit this file):
+   Example `terraform.tfvars` (do NOT commit this file):
    ```hcl
    region = "us-east-1"
    vpc_cidr = "10.0.0.0/16"
@@ -87,41 +92,41 @@ Quick start (local test)
    ```
 
 4. Initialize and apply:
-   terraform init
-   terraform plan -out=tfplan
+   terraform init  
+   terraform plan -out=tfplan  
    terraform apply "tfplan"
 
 5. After apply:
-   - Use terraform output to find ALB DNS, DB endpoint, and other values.
+   - Use `terraform output` to find ALB DNS, DB endpoint, and other values.
    - Access the application via the ALB DNS (if app health checks are healthy).
 
-Variables and secrets
+## Variables and secrets
 - Never commit secret values. Use one of:
-  - gitignored terraform.tfvars
-  - environment variables (TF_VAR_*)
+  - gitignored `terraform.tfvars`
+  - environment variables (`TF_VAR_*`)
   - AWS Secrets Manager or SSM Parameter Store
 - For team usage, enable remote state in S3 and DynamoDB locking.
 
-Common commands
+## Common commands
 - terraform init
 - terraform validate
 - terraform plan -out=tfplan
 - terraform apply tfplan
 - terraform destroy -var-file="terraform.tfvars"
-- ./scripts/bootstrap.sh (check scripts/ for exact helpers)
+- ./scripts/bootstrap.sh (check `scripts/` for exact helpers)
 
-Testing & validation
-- terraform validate
+## Testing & validation
+- `terraform validate`
 - Check ALB target group health in the AWS Console
 - Use curl to test the ALB:
   curl http://<alb-dns>
 - Test DB connectivity from app instances or a bastion using psql/mysql client (do not expose DB publicly)
 
-Cleanup / destroy
+## Cleanup / destroy
 - terraform destroy -var-file="terraform.tfvars"
 - Remove any manually created resources (e.g., S3 buckets with objects) before final deletion to avoid failures.
 
-Cost & security notes
+## Cost & security notes
 - Resources (EC2, ALB, RDS) incur cost. Use small instance types for dev/test and destroy when done.
 - Follow these security best practices:
   - Least-privilege IAM roles for automation
@@ -129,14 +134,12 @@ Cost & security notes
   - Secrets stored in Secrets Manager / SSM, not plaintext in code
   - Enable CloudTrail, GuardDuty, Config for production environments
 
-Contributing
+## Contributing
 - Issues and PRs welcome. If you change module interfaces, update docs and examples.
 - Use feature branches and include testing notes in PR descriptions.
 
-License & contact
+## License & contact
 - See the repository license file (if present). If no LICENSE is included, contact the repo owner: muralikrishna-sunkara.
 
-Acknowledgements
+## Acknowledgements
 - Based on common cloud patterns and Terraform best practices.
-
-```
