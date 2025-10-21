@@ -2,6 +2,7 @@
 # AWS Three-Tier Architecture (Terraform + Shell)
 
 A compact, opinionated reference implementation of a three‑tier architecture on AWS using Terraform (HCL) and small supporting shell scripts. This repo sets up a VPC with public and private subnets, an application tier (EC2 or ASG behind a load balancer), and a data tier (RDS). Use this as a starting template for learning, demos, or as the basis for production hardening.
+
 ![three-tier-app](https://github.com/user-attachments/assets/41b901b3-0f22-4f43-b7a6-a5d4b9b44127)
 
 ---
