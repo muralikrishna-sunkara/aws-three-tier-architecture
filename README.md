@@ -1,10 +1,8 @@
 # AWS Three-Tier Architecture (Terraform + Shell)
 
-<!-- Image: use a relative path so GitHub shows it correctly when the file and image are in the same repo.
-     If you prefer to host the image elsewhere, replace the path below with the raw URL. -->
-[![Three-tier architecture diagram](./images/three-tier-app.png)](https://raw.githubusercontent.com/muralikrishna-sunkara/aws-three-tier-architecture/edab2323c7a56bc8f30d0818e94481a8a1bf3019/images/three-tier-app.png)
 
-If the image above does not render, click the link to view the raw image. To make the image visible in this README, add the diagram file to the repository at `images/three-tier-app.png` (or update the path to wherever the file is stored).
+![three-tier-app](https://github.com/user-attachments/assets/eba7f47a-c5e0-4163-af21-2de0ef791084)
+
 
 ---
 
